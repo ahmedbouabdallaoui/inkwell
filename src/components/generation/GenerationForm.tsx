@@ -18,7 +18,7 @@ export function GenerationForm({ onSubmit, loading, initialValues }: GenerationF
     onSubmit({ genre, characters, setting })
   }
 
-  const fieldClass = "w-full rounded-md border border-ink-border bg-ink-bg px-3 py-2 text-sm font-sans text-ink-text placeholder-ink-muted focus:outline-none focus:border-ink-violet transition-colors"
+  const fieldClass = "w-full rounded-md border border-ink-border bg-ink-bg px-3 py-2 text-sm font-sans text-ink-text placeholder:text-ink-muted focus:outline-none focus:border-ink-violet transition-colors"
   const labelClass = "block text-xs font-sans font-medium text-ink-muted mb-1"
 
   return (

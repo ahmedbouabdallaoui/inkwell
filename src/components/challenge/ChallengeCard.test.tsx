@@ -10,6 +10,10 @@ const defaultProps = {
   accepted: false,
 }
 
+beforeEach(() => {
+  vi.clearAllMocks()
+})
+
 test('shows prompt teaser and streak count', () => {
   render(<ChallengeCard {...defaultProps} />)
   expect(screen.getByText(/Write about a letter/)).toBeInTheDocument()

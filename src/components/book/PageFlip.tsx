@@ -9,39 +9,43 @@ interface PageFlipProps {
 }
 
 export function PageFlip({ children, onFlipForward, onFlipBack, canFlipForward, canFlipBack }: PageFlipProps) {
-  const [animating, setAnimating] = useState(false)
+  const [phase, setPhase] = useState<'idle' | 'flipping-out' | 'flipping-in'>('idle')
 
   function handleFlip(direction: 'forward' | 'back') {
-    if (animating) return
-    setAnimating(true)
+    if (phase !== 'idle') return
+    setPhase('flipping-out')
     setTimeout(() => {
       direction === 'forward' ? onFlipForward() : onFlipBack()
-      setAnimating(false)
-    }, 400)
+      setPhase('flipping-in')
+      setTimeout(() => setPhase('idle'), 200)
+    }, 200)
   }
+
+  const contentClass = [
+    'w-full h-full',
+    phase === 'flipping-out' ? 'page-flip-out' : '',
+    phase === 'flipping-in'  ? 'page-flip-in'  : '',
+  ].join(' ')
 
   return (
     <div className="relative w-1/2 h-full overflow-hidden" style={{ perspective: 1200 }}>
-      {/* Page content */}
-      <div className={`w-full h-full ${animating ? 'page-flip-out' : ''}`}
+      <div className={contentClass}
            style={{ transformOrigin: 'left center', transformStyle: 'preserve-3d' }}>
         {children}
       </div>
 
-      {/* Left edge click zone — go back */}
       <button
         onClick={() => handleFlip('back')}
-        disabled={!canFlipBack || animating}
+        disabled={!canFlipBack || phase !== 'idle'}
         aria-label="Previous page"
-        className="absolute left-0 top-0 w-8 h-full z-10 cursor-w-resize disabled:cursor-default opacity-0"
+        className="absolute left-0 top-0 w-8 h-full z-10 cursor-pointer disabled:cursor-default opacity-0"
       />
 
-      {/* Right edge click zone — go forward */}
       <button
         onClick={() => handleFlip('forward')}
-        disabled={!canFlipForward || animating}
+        disabled={!canFlipForward || phase !== 'idle'}
         aria-label="Next page"
-        className="absolute right-0 top-0 w-8 h-full z-10 cursor-e-resize disabled:cursor-default opacity-0"
+        className="absolute right-0 top-0 w-8 h-full z-10 cursor-pointer disabled:cursor-default opacity-0"
       />
     </div>
   )

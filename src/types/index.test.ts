@@ -1,4 +1,4 @@
-import type { Book, Challenge, GenerationInput, PdfJob } from './index'
+import type { Book, Challenge } from './index'
 
 test('Book type has required shape', () => {
   const book: Book = {

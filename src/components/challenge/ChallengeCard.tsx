@@ -14,8 +14,9 @@ export function ChallengeCard({ prompt, streakCount, accepted, onAccept, onWrite
         <span className="text-xs font-sans font-medium text-ink-muted uppercase tracking-widest">
           Daily Challenge
         </span>
-        <span className="flex items-center gap-1 font-mono text-sm text-ink-text">
-          🔥 <span>{streakCount}</span>
+        <span className="flex items-center gap-1 font-mono text-sm text-ink-text" aria-label={`Streak: ${streakCount} days`}>
+          <span aria-hidden="true">🔥</span>
+          <span>{streakCount}</span>
         </span>
       </div>
 
