@@ -1,6 +1,6 @@
-@import "tailwindcss";
-
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Inter+Mono&family=Lora:ital,wght@0,400;0,600;1,400&family=Playfair+Display:wght@700&display=swap');
+
+@import "tailwindcss";
 
 @theme {
   --color-ink-bg: #0F0F12;
