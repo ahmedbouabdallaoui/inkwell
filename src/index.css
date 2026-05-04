@@ -1,0 +1,50 @@
+@import "tailwindcss";
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Inter+Mono&family=Lora:ital,wght@0,400;0,600;1,400&family=Playfair+Display:wght@700&display=swap');
+
+@theme {
+  --color-ink-bg: #0F0F12;
+  --color-ink-surface: #1A1A1F;
+  --color-ink-raised: #242429;
+  --color-ink-border: #2E2E35;
+  --color-ink-text: #E8E8F0;
+  --color-ink-muted: #8888A0;
+  --color-ink-violet: #8B6FE8;
+  --color-ink-paper: #F5EDD9;
+  --color-ink-bookink: #2C2416;
+  --font-sans: 'Inter', sans-serif;
+  --font-serif: 'Lora', Georgia, serif;
+  --font-display: 'Playfair Display', Georgia, serif;
+  --font-mono: 'Inter Mono', monospace;
+  --shadow-violet-glow: 0 0 0 2px rgba(139,111,232,0.35);
+  --shadow-book: 0 20px 60px rgba(0,0,0,0.6);
+}
+
+@keyframes page-flip-out {
+  from { transform: rotateY(0deg); }
+  to   { transform: rotateY(-90deg); }
+}
+
+@keyframes page-flip-in {
+  from { transform: rotateY(90deg); }
+  to   { transform: rotateY(0deg); }
+}
+
+@keyframes ink-ripple {
+  0%   { transform: scale(0); opacity: 0.7; }
+  100% { transform: scale(4); opacity: 0; }
+}
+
+.page-flip-out {
+  animation: page-flip-out 200ms ease-in forwards;
+  transform-origin: left center;
+  backface-visibility: hidden;
+}
+
+.page-flip-in {
+  animation: page-flip-in 200ms ease-out forwards;
+  transform-origin: left center;
+  backface-visibility: hidden;
+}
+
+* { box-sizing: border-box; }
