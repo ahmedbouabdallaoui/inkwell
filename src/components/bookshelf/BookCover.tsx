@@ -1,5 +1,14 @@
-import { motion } from 'framer-motion'
 import type { Book } from '../../types'
+
+function getSpineColors(id: string) {
+  let h = 0
+  for (let i = 0; i < id.length; i++) h = id.charCodeAt(i) + ((h << 5) - h)
+  const hue = Math.abs(h) % 360
+  return {
+    bg: `hsl(${hue}, 22%, 14%)`,
+    titleColor: `hsl(${hue}, 30%, 70%)`,
+  }
+}
 
 interface BookCoverProps {
   book: Pick<Book, 'id' | 'title' | 'coverImageUrl'>
@@ -8,26 +17,29 @@ interface BookCoverProps {
 }
 
 export function BookCover({ book, onSelect, isSelected }: BookCoverProps) {
+  const { bg, titleColor } = getSpineColors(book.id)
+
   return (
-    <motion.button
-      layoutId={`book-cover-${book.id}`}
+    <button
       onClick={() => onSelect(book.id)}
-      className="relative w-full aspect-[2/3] rounded-sm overflow-hidden focus:outline-none"
-      whileHover={{ scale: 1.04, rotate: 0 }}
-      initial={{ rotate: -1 }}
-      animate={isSelected ? { scale: 1.08, rotate: 0 } : { rotate: -1 }}
-      style={isSelected ? { boxShadow: '0 0 0 2px rgba(139,111,232,0.7)' } : {}}
-      transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+      className={`spine-book ${isSelected ? 'spine-selected' : ''}`}
+      aria-label={`Open ${book.title}`}
     >
-      <img
-        src={book.coverImageUrl}
-        alt={`${book.title} cover`}
-        className="w-full h-full object-cover"
-      />
-      {isSelected && (
-        <div className="absolute inset-0 rounded-sm"
-             style={{ boxShadow: 'inset 0 0 0 2px rgba(139,111,232,0.5)' }} />
-      )}
-    </motion.button>
+      <div className="spine-inner">
+        {/* Spine face */}
+        <div className="spine-face spine-front" style={{ background: bg }}>
+          <div className="spine-ornament" />
+          <span className="spine-title" style={{ color: titleColor }}>
+            {book.title}
+          </span>
+          <div className="spine-ornament bottom" />
+        </div>
+
+        {/* Cover face (revealed on hover/select) */}
+        <div className="spine-face spine-back">
+          <img src={book.coverImageUrl} alt={`${book.title} cover`} />
+        </div>
+      </div>
+    </button>
   )
 }

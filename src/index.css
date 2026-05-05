@@ -48,3 +48,140 @@
 }
 
 * { box-sizing: border-box; }
+
+/* ── Bookshelf row ── */
+.shelf-row {
+  position: relative;
+  padding: 20px 8px 32px;
+  margin-bottom: 6px;
+  display: flex;
+  justify-content: flex-start;
+  gap: 3px;
+}
+/* wood plank */
+.shelf-row::after {
+  content: '';
+  position: absolute;
+  bottom: 0; left: -14px; right: -14px;
+  height: 16px;
+  background: linear-gradient(180deg, #2a241c, #1e1a14);
+  border-top: 1px solid rgba(255,255,255,0.04);
+  border-bottom: 1px solid rgba(0,0,0,0.4);
+  box-shadow: 0 6px 14px rgba(0,0,0,0.5);
+  border-radius: 0 0 2px 2px;
+  pointer-events: none;
+}
+/* shadow books cast onto shelf */
+.shelf-row::before {
+  content: '';
+  position: absolute;
+  bottom: 16px; left: 0; right: 0;
+  height: 10px;
+  background: linear-gradient(180deg, rgba(0,0,0,0.28), transparent);
+  pointer-events: none;
+  z-index: 2;
+}
+
+/* ── Spine book ── */
+.spine-book {
+  position: relative;
+  width: 36px;
+  height: 170px;
+  cursor: pointer;
+  perspective: 800px;
+  z-index: 1;
+  flex-shrink: 0;
+  background: none;
+  border: none;
+  padding: 0;
+}
+.spine-book.spine-selected { z-index: 5; }
+
+.spine-inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+  transition: transform 0.42s cubic-bezier(0.34, 1.4, 0.64, 1),
+              box-shadow 0.42s ease;
+  transform-origin: left center;
+  border-radius: 2px 3px 3px 2px;
+  box-shadow: -2px 3px 8px rgba(0,0,0,0.5);
+}
+.spine-book:hover .spine-inner {
+  transform: rotateY(-75deg);
+  box-shadow: -8px 8px 24px rgba(0,0,0,0.6);
+}
+.spine-book.spine-selected .spine-inner {
+  transform: rotateY(-75deg);
+  box-shadow: -8px 8px 24px rgba(0,0,0,0.6),
+              0 0 16px rgba(139,111,232,0.28);
+}
+
+/* shared face base */
+.spine-face {
+  position: absolute;
+  inset: 0;
+  border-radius: 2px 3px 3px 2px;
+  overflow: hidden;
+  backface-visibility: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* front: the spine */
+.spine-face.spine-front {
+  z-index: 2;
+  box-shadow: inset -2px 0 4px rgba(0,0,0,0.4),
+              inset 1px 0 0 rgba(255,255,255,0.04);
+}
+.spine-face.spine-front::before {
+  content: '';
+  position: absolute;
+  left: 2px; top: 8px; bottom: 8px; width: 1px;
+  background: rgba(255,255,255,0.06);
+}
+.spine-face.spine-front::after {
+  content: '';
+  position: absolute;
+  right: 3px; top: 0; bottom: 0; width: 4px;
+  background: linear-gradient(90deg, transparent, rgba(0,0,0,0.3));
+}
+/* selected: faint violet inset ring on spine */
+.spine-book.spine-selected .spine-face.spine-front {
+  box-shadow: inset -2px 0 4px rgba(0,0,0,0.4),
+              inset 0 0 0 1px rgba(139,111,232,0.35);
+}
+
+.spine-title {
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: 12px;
+  letter-spacing: 0.07em;
+  max-height: 140px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+  padding: 8px 0;
+}
+
+.spine-ornament {
+  position: absolute;
+  top: 10px; left: 50%; transform: translateX(-50%);
+  width: 11px; height: 11px;
+  border-radius: 50%;
+  border: 1px solid rgba(255,255,255,0.12);
+}
+.spine-ornament.bottom { top: auto; bottom: 10px; }
+
+/* back: cover image */
+.spine-face.spine-back {
+  transform: rotateY(180deg);
+  z-index: 1;
+}
+.spine-face.spine-back img {
+  width: 100%; height: 100%; object-fit: cover;
+}
