@@ -52,7 +52,7 @@
 /* ── Bookshelf row ── */
 .shelf-row {
   position: relative;
-  padding: 20px 8px 32px;
+  padding: 20px 8px 44px;
   margin-bottom: 6px;
   display: flex;
   justify-content: flex-start;
@@ -82,6 +82,75 @@
   z-index: 2;
 }
 
+/* ── Book container (spine + actions) ── */
+.book-container {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.book-actions {
+  position: absolute;
+  bottom: -32px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 3px;
+  opacity: 1;
+  z-index: 10;
+}
+
+.book-action-btn {
+  width: 28px; height: 28px;
+  border-radius: 4px;
+  border: 1px solid rgba(255,255,255,0.08);
+  background: rgba(15,15,18,0.92);
+  color: #8888A0;
+  font-size: 13px;
+  line-height: 1;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: color 0.15s, background 0.15s, border-color 0.15s;
+  padding: 0;
+  backdrop-filter: blur(4px);
+}
+.book-action-btn:hover {
+  color: #E8E8F0;
+  background: rgba(139,111,232,0.25);
+  border-color: rgba(139,111,232,0.4);
+}
+.book-action-fav.active { color: #f87171; }
+.book-action-fav.active:hover { background: rgba(248,113,113,0.2); border-color: rgba(248,113,113,0.4); }
+.book-action-delete:hover {
+  color: #f87171;
+  background: rgba(248,113,113,0.15);
+  border-color: rgba(248,113,113,0.35);
+}
+
+/* shelf pagination */
+.shelf-pagination {
+  display: flex; align-items: center; justify-content: center;
+  gap: 10px; padding: 10px 0 4px;
+  color: #8888A0;
+  font-size: 11px; font-family: 'Inter', sans-serif;
+}
+.shelf-pagination button {
+  width: 22px; height: 22px; border-radius: 4px;
+  border: 1px solid #2E2E35;
+  background: transparent; color: #8888A0;
+  cursor: pointer; font-size: 14px;
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.15s;
+}
+.shelf-pagination button:hover:not(:disabled) {
+  color: #E8E8F0;
+  border-color: rgba(139,111,232,0.4);
+  background: rgba(139,111,232,0.08);
+}
+.shelf-pagination button:disabled { opacity: 0.3; cursor: default; }
+
 /* ── Spine book ── */
 .spine-book {
   position: relative;
@@ -108,14 +177,11 @@
   border-radius: 2px 3px 3px 2px;
   box-shadow: -2px 3px 8px rgba(0,0,0,0.5);
 }
-.spine-book:hover .spine-inner {
-  transform: rotateY(-75deg);
-  box-shadow: -8px 8px 24px rgba(0,0,0,0.6);
-}
+/* selected: glow only — no rotation, spine stays upright */
 .spine-book.spine-selected .spine-inner {
-  transform: rotateY(-75deg);
-  box-shadow: -8px 8px 24px rgba(0,0,0,0.6),
-              0 0 16px rgba(139,111,232,0.28);
+  box-shadow: -2px 3px 8px rgba(0,0,0,0.5),
+              0 0 0 1px rgba(139,111,232,0.5),
+              0 0 14px rgba(139,111,232,0.22);
 }
 
 /* shared face base */
@@ -184,4 +250,244 @@
 }
 .spine-face.spine-back img {
   width: 100%; height: 100%; object-fit: cover;
+  /* correct horizontal mirror caused by the 180° backface rotation */
+  transform: scaleX(-1);
 }
+
+/* ── Closed book (cover display) ── */
+.book-closed-wrap {
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  animation: book-appear 0.4s ease both;
+}
+.book-closed-cover {
+  width: 260px; height: 380px;
+  border-radius: 2px 6px 6px 2px;
+  overflow: hidden;
+  transform: rotateY(-8deg) rotateX(3deg);
+  transform-style: preserve-3d;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  box-shadow:
+    4px 0 0 0 #d4c9a8,
+    6px 0 0 0 #b8aa82,
+    8px 0 0 0 #9e8f68,
+    0 24px 50px rgba(0,0,0,0.55);
+}
+.book-closed-wrap:hover .book-closed-cover {
+  transform: rotateY(-14deg) rotateX(4deg) scale(1.02);
+  box-shadow:
+    5px 0 0 0 #d4c9a8,
+    8px 0 0 0 #b8aa82,
+    11px 0 0 0 #9e8f68,
+    0 30px 60px rgba(0,0,0,0.65);
+}
+.book-closed-cover img {
+  width: 100%; height: 100%; object-fit: cover;
+}
+.book-closed-hint {
+  font-size: 12px;
+  font-family: 'Inter', sans-serif;
+  color: #8888A0;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+/* ── Open book spread ── */
+.book-scene {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+}
+
+.book-spread {
+  display: flex;
+  width: 720px; height: 500px;
+  border-radius: 4px 6px 6px 4px;
+  /* no overflow:hidden — lets the 3D page flip rotate without clipping */
+  background: #F5EDD9;
+  position: relative;
+  box-shadow:
+    0 4px 0 0 #d4c9a8,
+    0 6px 0 0 #b8aa82,
+    0 8px 0 0 #9e8f68,
+    0 30px 60px rgba(0,0,0,0.5),
+    0 0 0 1px rgba(0,0,0,0.2);
+  transform: rotateX(4deg);
+  transform-origin: center bottom;
+}
+
+/* book opening — pages sweep out from spine to the right */
+@keyframes book-open-sweep {
+  from {
+    clip-path: inset(0 50% 0 0 round 0 6px 6px 0);
+    transform: rotateX(8deg);
+  }
+  to {
+    clip-path: inset(0 0% 0 0 round 4px 6px 6px 4px);
+    transform: rotateX(4deg);
+  }
+}
+.book-spread--opening {
+  animation: book-open-sweep 550ms cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+
+/* book closing — pages fold back into spine */
+@keyframes book-close-sweep {
+  from {
+    clip-path: inset(0 0% 0 0 round 4px 6px 6px 4px);
+    transform: rotateX(4deg);
+  }
+  to {
+    clip-path: inset(0 50% 0 0 round 0 6px 6px 0);
+    transform: rotateX(8deg);
+  }
+}
+.book-spread--closing {
+  animation: book-close-sweep 400ms cubic-bezier(0.4, 0, 0.6, 1) both;
+}
+
+/* center spine shadow */
+.book-spine-shadow {
+  position: absolute;
+  left: 50%; top: 0; bottom: 0; width: 40px;
+  transform: translateX(-50%);
+  background: linear-gradient(90deg,
+    rgba(0,0,0,0.05),
+    rgba(0,0,0,0.15) 40%,
+    rgba(0,0,0,0.15) 60%,
+    rgba(0,0,0,0.05));
+  pointer-events: none;
+  z-index: 3;
+}
+
+.book-page {
+  width: 50%; height: 100%;
+  background: #F5EDD9;
+  overflow: hidden;
+  position: relative;
+}
+.book-page-left {
+  border-right: 1px solid rgba(44,36,22,0.08);
+  border-radius: 4px 0 0 4px;
+}
+.book-page-right {
+  transform-origin: left center;
+  border-radius: 0 6px 6px 0;
+}
+/* transition is applied imperatively via JS ref — no CSS transition here */
+
+/* page flip hover zones */
+.flip-zone {
+  position: absolute; top: 0; bottom: 0;
+  width: 50px; border: none; background: transparent;
+  cursor: pointer; z-index: 5; opacity: 0;
+  transition: opacity 0.2s;
+}
+.flip-zone:hover { opacity: 1; }
+.flip-zone-prev {
+  left: 0;
+  background: linear-gradient(90deg, rgba(139,111,232,0.08), transparent);
+}
+.flip-zone-next {
+  right: 0;
+  background: linear-gradient(270deg, rgba(139,111,232,0.08), transparent);
+}
+.flip-zone:disabled { cursor: default; opacity: 0 !important; }
+
+/* table surface beneath book */
+.book-table-surface {
+  width: 860px; height: 36px;
+  background: linear-gradient(180deg, #1e1912, #161410);
+  border-radius: 50%;
+  margin-top: -10px;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.6);
+  opacity: 0.8;
+  position: relative;
+  z-index: -1;
+}
+
+/* pill toolbar */
+.book-toolbar {
+  display: flex; align-items: center; gap: 24px;
+  background: rgba(26,26,31,0.75);
+  padding: 9px 22px;
+  border-radius: 999px;
+  border: 1px solid #2E2E35;
+  backdrop-filter: blur(8px);
+  color: #8888A0;
+}
+.book-toolbar-btn {
+  background: none; border: none;
+  color: inherit;
+  font-size: 12px; font-family: 'Inter', sans-serif;
+  cursor: pointer;
+  padding: 4px 8px; border-radius: 4px;
+  transition: all 0.15s;
+}
+.book-toolbar-btn:hover {
+  color: #E8E8F0;
+  background: rgba(139,111,232,0.1);
+}
+
+/* ── Edit mode (inside book pages) ── */
+.book-edit-title {
+  width: 100%; background: transparent; border: none;
+  border-bottom: 1px solid rgba(44,36,22,0.18);
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: 20px; color: #2C2416;
+  outline: none; padding: 4px 0; margin-bottom: 16px;
+}
+.book-edit-title:focus { border-bottom-color: rgba(44,36,22,0.45); }
+
+.book-edit-textarea {
+  width: 100%; flex: 1;
+  background: transparent; border: none; resize: none;
+  font-family: 'Lora', Georgia, serif;
+  font-size: 13.5px; line-height: 1.8; color: #2C2416;
+  outline: none; padding: 0;
+}
+
+.book-regen-label {
+  font-size: 9px; font-family: 'Inter', sans-serif;
+  font-weight: 600; color: rgba(44,36,22,0.4);
+  text-transform: uppercase; letter-spacing: 0.1em;
+  margin-bottom: 6px;
+}
+.book-regen-input {
+  width: 100%; background: rgba(44,36,22,0.05);
+  border: 1px solid rgba(44,36,22,0.15); border-radius: 4px;
+  font-family: 'Inter', sans-serif; font-size: 12px; color: #2C2416;
+  outline: none; padding: 7px 10px; margin-bottom: 8px;
+}
+.book-regen-input:focus { border-color: rgba(44,36,22,0.35); }
+.book-regen-input::placeholder { color: rgba(44,36,22,0.3); }
+
+.book-regen-btn {
+  width: 100%; border-radius: 4px;
+  border: 1px solid rgba(44,36,22,0.2);
+  background: rgba(44,36,22,0.06);
+  font-family: 'Inter', sans-serif; font-size: 12px; color: #2C2416;
+  cursor: pointer; padding: 7px; transition: background 0.15s;
+}
+.book-regen-btn:hover:not(:disabled) { background: rgba(44,36,22,0.12); }
+.book-regen-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+.book-regen-count {
+  font-size: 10px; color: rgba(44,36,22,0.4);
+  font-family: 'Inter Mono', monospace;
+  text-align: center; margin-top: 6px;
+}
+
+/* empty state float */
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50%       { transform: translateY(-8px); }
+}
+.empty-float { animation: float 6s ease-in-out infinite; }
+
+/* Hidden scrollbar for bookshelf */
+.shelf-scroll { scrollbar-width: none; }
+.shelf-scroll::-webkit-scrollbar { display: none; }
