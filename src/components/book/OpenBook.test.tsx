@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react'
+import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { OpenBook } from './OpenBook'
 import type { Book } from '../../types'
@@ -40,8 +40,10 @@ test('shows FlipBook after opening', async () => {
   const user = userEvent.setup()
   render(<OpenBook book={book} {...defaultProps} />)
   await user.click(screen.getByRole('button', { name: /Open book/i }))
-  // FlipBook is eventually rendered (after 700ms animation — but in test it's immediate)
-  expect(screen.queryByTestId('html-flip-book')).toBeDefined()
+  await waitFor(
+    () => expect(screen.getByTestId('html-flip-book')).toBeInTheDocument(),
+    { timeout: 1500 },
+  )
 })
 
 test('enters edit mode when editSignal increments', () => {

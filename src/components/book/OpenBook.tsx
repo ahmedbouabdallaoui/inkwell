@@ -43,7 +43,7 @@ export function OpenBook({ book, editSignal, onPdfExport, onShare, onSave, onReg
       setRegenCount(0)
       openBook(true)
     }
-  }, [editSignal])
+  }, [editSignal, book])
 
   function openBook(inEditMode = false) {
     if (inEditMode) {
