@@ -490,4 +490,129 @@
 
 /* Hidden scrollbar for bookshelf */
 .shelf-scroll { scrollbar-width: none; }
+
+/* ══════════════════════════════════════════
+   3D BOOK
+══════════════════════════════════════════ */
+
+/* Scene — provides perspective for 3D children */
+.book-3d-scene {
+  perspective: 1400px;
+  perspective-origin: 50% 40%;
+}
+
+/* Book volume — all children live in 3D space */
+.book-3d-body {
+  position: relative;
+  width: 720px; height: 500px;
+  transform-style: preserve-3d;
+  transition: transform 700ms ease-in-out;
+}
+.book-3d-body--closed { transform: rotateY(-8deg) rotateX(3deg); }
+.book-3d-body--open   { transform: rotateY(0deg) rotateX(0deg); }
+
+/* Full interior — background paper, holds FlipBook when open */
+.book-3d-interior {
+  position: absolute; inset: 0;
+  border-radius: 4px 6px 6px 4px;
+  background: #F5EDD9;
+  box-shadow:
+    0 4px 0 0 #d4c9a8,
+    0 6px 0 0 #b8aa82,
+    0 8px 0 0 #9e8f68,
+    0 30px 60px rgba(0,0,0,0.5),
+    0 0 0 1px rgba(0,0,0,0.2);
+  display: flex;
+  overflow: hidden;
+}
+
+/* Left spine — visible in 3D when book is tilted */
+.book-3d-spine {
+  position: absolute;
+  width: 20px; height: 500px;
+  left: 0; top: 0;
+  transform-origin: right center;
+  transform: rotateY(90deg);
+  background: linear-gradient(to right, #1e1a14, #2a2316);
+  border-radius: 4px 0 0 4px;
+  box-shadow: inset -2px 0 6px rgba(0,0,0,0.4);
+}
+
+/* Right page-edge — cream page-stack visible when closed */
+.book-3d-pages-edge {
+  position: absolute;
+  width: 18px; height: 500px;
+  right: 0; top: 0;
+  transform-origin: left center;
+  transform: rotateY(-90deg);
+  background: repeating-linear-gradient(
+    to bottom,
+    #F0E6CE 0px, #F0E6CE 6px,
+    #E4D9BB 6px, #E4D9BB 7px
+  );
+}
+
+/* Front cover panel — rotates open around spine (left edge) */
+.book-3d-cover {
+  position: absolute;
+  width: 360px; height: 500px;
+  left: 0; top: 0;
+  transform-origin: left center;
+  backface-visibility: hidden;
+  overflow: hidden;
+  border-radius: 4px 0 0 4px;
+  z-index: 3;
+  cursor: pointer;
+  box-shadow: 2px 0 16px rgba(0,0,0,0.35);
+}
+.book-3d-cover--closed  { transform: rotateY(0deg); }
+.book-3d-cover--open    { transform: rotateY(-180deg); cursor: default; }
+.book-3d-cover--opening { animation: book-cover-open  700ms ease-in-out forwards; }
+.book-3d-cover--closing { animation: book-cover-close 700ms ease-in-out forwards; }
+
+@keyframes book-cover-open  {
+  from { transform: rotateY(0deg); }
+  to   { transform: rotateY(-180deg); }
+}
+@keyframes book-cover-close {
+  from { transform: rotateY(-180deg); }
+  to   { transform: rotateY(0deg); }
+}
+
+/* "Click to open" hint on the cover */
+.book-3d-cover-hint {
+  position: absolute; inset: 0;
+  display: flex; align-items: flex-end; justify-content: center;
+  padding-bottom: 20px;
+  background: linear-gradient(to bottom, transparent 65%, rgba(0,0,0,0.28));
+  pointer-events: none;
+}
+.book-3d-cover-hint span {
+  color: rgba(255,255,255,0.62);
+  font-size: 10px; font-family: 'Inter', sans-serif;
+  letter-spacing: 0.12em; text-transform: uppercase;
+}
+
+/* Page-stack visual on right half when closed */
+.book-3d-closed-right {
+  position: absolute;
+  right: 0; top: 0; width: 360px; height: 100%;
+  background: repeating-linear-gradient(
+    to bottom,
+    #F0E6CE 0px, #F0E6CE 6px,
+    #E4D9BB 6px, #E4D9BB 7px
+  );
+  border-left: 2px solid rgba(44,36,22,0.12);
+  box-shadow: inset 2px 0 8px rgba(0,0,0,0.12);
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center; gap: 10px;
+}
+
+/* react-pageflip page wrapper */
+.flip-page {
+  width: 360px; height: 500px;
+  background: #F5EDD9;
+  overflow: hidden;
+  user-select: none;
+}
 .shelf-scroll::-webkit-scrollbar { display: none; }
