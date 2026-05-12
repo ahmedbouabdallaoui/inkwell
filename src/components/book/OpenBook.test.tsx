@@ -1,9 +1,25 @@
 import { render, screen } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { OpenBook } from './OpenBook'
 import type { Book } from '../../types'
 
+vi.mock('react-pageflip', () => ({
+  default: vi.fn(({ children }: any) => (
+    <div data-testid="html-flip-book">{children}</div>
+  )),
+}))
+
+const noop = vi.fn()
+const defaultProps = {
+  editSignal: 0,
+  onPdfExport: noop,
+  onShare: noop,
+  onSave: noop,
+  onRegenerateCover: noop,
+}
+
 test('shows empty state when no book is selected', () => {
-  render(<OpenBook book={null} onPdfExport={vi.fn()} onShare={vi.fn()} />)
+  render(<OpenBook book={null} {...defaultProps} />)
   expect(screen.getByText(/Select a story from your shelf/i)).toBeInTheDocument()
 })
 
@@ -14,13 +30,34 @@ const book: Book = {
   createdAt: '2026-05-04T00:00:00Z', userId: 'u1',
 }
 
-test('shows book title and first page content when a book is open', () => {
-  render(<OpenBook book={book} onPdfExport={vi.fn()} onShare={vi.fn()} />)
-  expect(screen.getByText('The Dragon Wakes')).toBeInTheDocument()
-  expect(screen.getByText(/Page one content/)).toBeInTheDocument()
+test('shows closed cover with Open button when book is first selected', () => {
+  render(<OpenBook book={book} {...defaultProps} />)
+  expect(screen.getByRole('img', { name: 'The Dragon Wakes cover' })).toBeInTheDocument()
+  expect(screen.getByRole('button', { name: /Open book/i })).toBeInTheDocument()
 })
 
-test('shows correct page counter', () => {
-  render(<OpenBook book={book} onPdfExport={vi.fn()} onShare={vi.fn()} />)
-  expect(screen.getByText('1 / 3')).toBeInTheDocument()
+test('shows FlipBook after opening', async () => {
+  const user = userEvent.setup()
+  render(<OpenBook book={book} {...defaultProps} />)
+  await user.click(screen.getByRole('button', { name: /Open book/i }))
+  // FlipBook is eventually rendered (after 700ms animation — but in test it's immediate)
+  expect(screen.queryByTestId('html-flip-book')).toBeDefined()
+})
+
+test('enters edit mode when editSignal increments', () => {
+  const { rerender } = render(<OpenBook book={book} {...defaultProps} editSignal={0} />)
+  rerender(<OpenBook book={book} {...defaultProps} editSignal={1} />)
+  expect(screen.getByPlaceholderText(/Describe a new cover image/i)).toBeInTheDocument()
+})
+
+test('calls onSave with updated title on save', async () => {
+  const user = userEvent.setup()
+  const onSave = vi.fn()
+  const { rerender } = render(<OpenBook book={book} {...defaultProps} onSave={onSave} editSignal={0} />)
+  rerender(<OpenBook book={book} {...defaultProps} onSave={onSave} editSignal={1} />)
+  const input = screen.getByPlaceholderText(/Book title/i)
+  await user.clear(input)
+  await user.type(input, 'New Title')
+  await user.click(screen.getByRole('button', { name: /Save/i }))
+  expect(onSave).toHaveBeenCalledWith('1', expect.objectContaining({ title: 'New Title' }))
 })
