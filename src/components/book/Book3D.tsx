@@ -12,6 +12,7 @@ interface Book3DProps {
 
 export function Book3D({ coverImageUrl, title, isOpen, isOpening, isClosing, onOpen, children }: Book3DProps) {
   const showOpen = isOpen && !isClosing
+  const showCrease = isOpening || isClosing
 
   // During opening, switch body to --open immediately so width/transform transitions run
   const bodyIsOpen = isOpen || isOpening
@@ -34,7 +35,10 @@ export function Book3D({ coverImageUrl, title, isOpen, isOpening, isClosing, onO
         {/* Interior — paper background; FlipBook mounts here when open */}
         <div className="book-3d-interior">
           {showOpen && children}
-          {showOpen && <div className="book-3d-crease" aria-hidden />}
+          <div
+            className={`book-3d-crease ${showCrease ? 'book-3d-crease--visible' : ''}`}
+            aria-hidden
+          />
           {!showOpen && !isOpening && (
             <div className="book-3d-closed-right">
               <span style={{ color: '#8B6FE8', fontSize: 18, opacity: 0.45 }}>◆</span>

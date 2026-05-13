@@ -90,10 +90,18 @@
   align-items: center;
   flex-shrink: 0;
 }
+.book-container::after {
+  content: '';
+  position: absolute;
+  left: -6px; right: -6px;
+  bottom: -34px;
+  height: 34px;
+  z-index: 0;
+}
 
 .book-actions {
   position: absolute;
-  bottom: -36px;
+  bottom: -32px;
   left: 50%;
   transform: translateX(-50%);
   display: flex;
@@ -106,8 +114,27 @@
   padding: 4px 5px;
   border: 1px solid rgba(255,255,255,0.06);
   box-shadow: 0 4px 16px rgba(0,0,0,0.45);
+  pointer-events: none;
 }
-.book-container:hover .book-actions { opacity: 1; }
+.book-container:hover .book-actions,
+.book-actions:hover {
+  opacity: 1;
+  pointer-events: auto;
+}
+.shelf-row > .book-container:first-child .book-actions {
+  left: 0;
+  transform: none;
+}
+.shelf-row > .book-container:last-child .book-actions {
+  left: auto;
+  right: 0;
+  transform: none;
+}
+.shelf-row > .book-container:only-child .book-actions {
+  left: 50%;
+  right: auto;
+  transform: translateX(-50%);
+}
 
 .book-action-btn {
   width: 28px; height: 28px;
@@ -510,8 +537,8 @@
   position: relative;
   height: 500px;
   transform-style: preserve-3d;
-  transition: transform 700ms cubic-bezier(0.4, 0, 0.2, 1),
-              width   700ms cubic-bezier(0.4, 0, 0.2, 1);
+  transition: transform 900ms cubic-bezier(0.4, 0, 0.2, 1),
+              width   900ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 .book-3d-body--closed { width: 360px; transform: rotateY(-8deg) rotateX(3deg); }
 .book-3d-body--open   { width: 720px; transform: rotateY(0deg) rotateX(0deg); }
@@ -535,7 +562,7 @@
 .book-3d-crease {
   position: absolute;
   left: 50%; top: 0; bottom: 0;
-  width: 28px;
+  width: 18px;
   transform: translateX(-50%);
   background: linear-gradient(to right,
     rgba(0,0,0,0.22) 0%,
@@ -546,6 +573,11 @@
   );
   pointer-events: none;
   z-index: 10;
+  opacity: 0;
+  transition: opacity 220ms ease-out;
+}
+.book-3d-crease--visible {
+  opacity: 1;
 }
 
 /* Left spine — visible in 3D when book is tilted */
@@ -589,8 +621,8 @@
 }
 .book-3d-cover--closed  { transform: rotateY(0deg); }
 .book-3d-cover--open    { transform: rotateY(-180deg); cursor: default; }
-.book-3d-cover--opening { animation: book-cover-open  700ms cubic-bezier(0.4, 0, 0.2, 1) forwards; }
-.book-3d-cover--closing { animation: book-cover-close 700ms cubic-bezier(0.4, 0, 0.2, 1) forwards; }
+.book-3d-cover--opening { animation: book-cover-open  900ms cubic-bezier(0.4, 0, 0.2, 1) forwards; }
+.book-3d-cover--closing { animation: book-cover-close 900ms cubic-bezier(0.4, 0, 0.2, 1) forwards; }
 
 @keyframes book-cover-open  {
   from { transform: rotateY(0deg); }

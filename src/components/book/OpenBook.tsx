@@ -57,7 +57,7 @@ export function OpenBook({ book, editSignal, onPdfExport, onShare, onSave, onReg
     setTimeout(() => {
       setIsOpen(true)
       setIsOpening(false)
-    }, 700)
+    }, 900)
   }
 
   function closeBook() {
@@ -67,7 +67,7 @@ export function OpenBook({ book, editSignal, onPdfExport, onShare, onSave, onReg
       setIsClosing(false)
       setEditMode(false)
       setCurrentPage(0)
-    }, 700)
+    }, 900)
   }
 
   function enterEditMode() {
@@ -163,6 +163,7 @@ export function OpenBook({ book, editSignal, onPdfExport, onShare, onSave, onReg
           <FlipBook
             book={book}
             onPageChange={setCurrentPage}
+            onRequestClose={closeBook}
           />
         )}
       </Book3D>
