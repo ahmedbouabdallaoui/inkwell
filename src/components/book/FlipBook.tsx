@@ -2,6 +2,7 @@ import { useRef, useEffect } from 'react'
 import HTMLFlipBook from 'react-pageflip'
 import { BookPage } from './BookPage'
 import type { Book } from '../../types'
+import React from 'react'
 
 interface FlipBookProps {
   book: Book
@@ -11,7 +12,6 @@ interface FlipBookProps {
 export function FlipBook({ book, onPageChange }: FlipBookProps) {
   const bookRef = useRef<any>(null)
 
-  // Keyboard navigation
   useEffect(() => {
     function handleKey(e: KeyboardEvent) {
       if (e.key === 'ArrowRight') bookRef.current?.pageFlip()?.flipNext()
@@ -21,9 +21,38 @@ export function FlipBook({ book, onPageChange }: FlipBookProps) {
     return () => window.removeEventListener('keydown', handleKey)
   }, [])
 
-  // Pages array: [title, ...story pages, (blank if needed for even pairing)]
-  const storyPages = book.pages
-  const needsBlank = storyPages.length % 2 === 0  // odd total pages after title → needs blank
+  // Pre-build the pages array — no conditional JSX children.
+  // react-pageflip calls React.cloneElement on every child; if a child
+  // evaluates to false/null (from a short-circuit expression), it throws.
+  const pages: React.ReactElement[] = [
+    <div key="title" className="flip-page" onClick={() => bookRef.current?.pageFlip()?.flipPrev()}>
+      <BookPage side="left" title={book.title} genre={book.genre} createdAt={book.createdAt} content="" />
+    </div>,
+    ...book.pages.map((content, i) => {
+      const flipIdx = i + 1
+      return (
+        <div
+          key={`page-${i}`}
+          className="flip-page"
+          onClick={() => {
+            if (flipIdx % 2 === 0) bookRef.current?.pageFlip()?.flipPrev()
+            else                   bookRef.current?.pageFlip()?.flipNext()
+          }}
+        >
+          <BookPage side="right" content={content} />
+        </div>
+      )
+    }),
+  ]
+
+  // Ensure even total page count so the last story page is never alone on the right
+  if (book.pages.length % 2 === 0) {
+    pages.push(
+      <div key="blank" className="flip-page" onClick={() => bookRef.current?.pageFlip()?.flipPrev()}>
+        <div style={{ width: '100%', height: '100%', background: '#F5EDD9' }} />
+      </div>
+    )
+  }
 
   return (
     <HTMLFlipBook
@@ -49,44 +78,7 @@ export function FlipBook({ book, onPageChange }: FlipBookProps) {
       showPageCorners
       disableFlipByClick
     >
-      {/* Page 0 (left): Title page */}
-      <div
-        className="flip-page"
-        onClick={() => bookRef.current?.pageFlip()?.flipPrev()}
-      >
-        <BookPage
-          side="left"
-          title={book.title}
-          genre={book.genre}
-          createdAt={book.createdAt}
-          content=""
-        />
-      </div>
-
-      {/* Pages 1…N: story content, alternating left/right */}
-      {storyPages.map((content, i) => (
-        <div
-          key={i}
-          className="flip-page"
-          onClick={() => {
-            // Page index in FlipBook is i + 1
-            // Even FlipBook index = left page → go back
-            // Odd FlipBook index  = right page → go forward
-            const flipIdx = i + 1
-            if (flipIdx % 2 === 0) bookRef.current?.pageFlip()?.flipPrev()
-            else                   bookRef.current?.pageFlip()?.flipNext()
-          }}
-        >
-          <BookPage side="right" content={content} />
-        </div>
-      ))}
-
-      {/* Blank page when needed so the last story page isn't alone on the right */}
-      {needsBlank && (
-        <div className="flip-page" onClick={() => bookRef.current?.pageFlip()?.flipPrev()}>
-          <div style={{ width: '100%', height: '100%', background: '#F5EDD9' }} />
-        </div>
-      )}
+      {pages}
     </HTMLFlipBook>
   )
 }
