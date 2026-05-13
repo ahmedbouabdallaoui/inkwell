@@ -8,6 +8,7 @@ export interface Book {
   pages: string[]
   createdAt: string
   userId: string
+  isFavourite?: boolean
 }
 
 export interface Challenge {

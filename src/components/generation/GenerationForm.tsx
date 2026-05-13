@@ -34,9 +34,17 @@ export function GenerationForm({ onSubmit, loading, initialValues }: GenerationF
                value={characters} onChange={(e) => setCharacters(e.target.value)} required />
       </div>
       <div>
-        <label htmlFor="setting" className={labelClass}>Setting</label>
-        <input id="setting" className={fieldClass} placeholder="A collapsing empire at war…"
-               value={setting} onChange={(e) => setSetting(e.target.value)} required />
+        <label htmlFor="setting" className={labelClass}>Description</label>
+        <textarea
+          id="setting"
+          className={fieldClass}
+          placeholder="Describe the world, setting, and mood of your story…"
+          value={setting}
+          onChange={(e) => setSetting(e.target.value)}
+          rows={4}
+          required
+          style={{ resize: 'none' }}
+        />
       </div>
       <button
         type="submit"

@@ -12,11 +12,15 @@ interface LeftPanelProps {
   challengeAccepted: boolean
   onAcceptChallenge: () => void
   onWriteNow: () => void
+  onEditBook: (id: string) => void
+  onDeleteBook: (id: string) => void
+  onFavouriteBook: (id: string) => void
 }
 
 export function LeftPanel({
   books, selectedBookId, onSelectBook, onNewStory,
   challenge, challengeAccepted, onAcceptChallenge, onWriteNow,
+  onEditBook, onDeleteBook, onFavouriteBook,
 }: LeftPanelProps) {
   return (
     <div className="flex flex-col h-full">
@@ -41,6 +45,9 @@ export function LeftPanel({
         selectedBookId={selectedBookId}
         onSelect={onSelectBook}
         onNewStory={onNewStory}
+        onEdit={onEditBook}
+        onDelete={onDeleteBook}
+        onFavourite={onFavouriteBook}
       />
     </div>
   )

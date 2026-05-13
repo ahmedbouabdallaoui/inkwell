@@ -2,18 +2,18 @@ import { render, screen } from '@testing-library/react'
 import { LeftPanel } from './LeftPanel'
 
 const noop = vi.fn()
+const panelProps = {
+  books: [], selectedBookId: null,
+  onSelectBook: noop, onNewStory: noop,
+  challengeAccepted: false, onAcceptChallenge: noop, onWriteNow: noop,
+  onEditBook: noop, onDeleteBook: noop, onFavouriteBook: noop,
+}
 
 test('renders Wordmark, ChallengeCard, and BookShelf', () => {
   render(
     <LeftPanel
-      books={[]}
-      selectedBookId={null}
-      onSelectBook={noop}
-      onNewStory={noop}
+      {...panelProps}
       challenge={{ id: 'c1', prompt: 'A letter never sent.', date: '2026-05-04', streakCount: 3 }}
-      challengeAccepted={false}
-      onAcceptChallenge={noop}
-      onWriteNow={noop}
     />
   )
   expect(screen.getByText('Inkwell')).toBeInTheDocument()

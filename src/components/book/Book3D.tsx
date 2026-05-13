@@ -13,9 +13,11 @@ interface Book3DProps {
 export function Book3D({ coverImageUrl, title, isOpen, isOpening, isClosing, onOpen, children }: Book3DProps) {
   const showOpen = isOpen && !isClosing
 
+  // During opening, switch body to --open immediately so width/transform transitions run
+  const bodyIsOpen = isOpen || isOpening
   const bodyClass = [
     'book-3d-body',
-    showOpen ? 'book-3d-body--open' : 'book-3d-body--closed',
+    bodyIsOpen ? 'book-3d-body--open' : 'book-3d-body--closed',
   ].join(' ')
 
   const coverClass = [
@@ -32,6 +34,7 @@ export function Book3D({ coverImageUrl, title, isOpen, isOpening, isClosing, onO
         {/* Interior — paper background; FlipBook mounts here when open */}
         <div className="book-3d-interior">
           {showOpen && children}
+          {showOpen && <div className="book-3d-crease" aria-hidden />}
           {!showOpen && !isOpening && (
             <div className="book-3d-closed-right">
               <span style={{ color: '#8B6FE8', fontSize: 18, opacity: 0.45 }}>◆</span>
@@ -45,8 +48,8 @@ export function Book3D({ coverImageUrl, title, isOpen, isOpening, isClosing, onO
         {/* Spine — left edge, visible in 3D tilt */}
         <div className="book-3d-spine" aria-hidden />
 
-        {/* Page-edge stack — right side, visible only when closed */}
-        {!showOpen && <div className="book-3d-pages-edge" aria-hidden />}
+        {/* Page-edge stack — right side, visible only when fully closed */}
+        {!showOpen && !isOpening && <div className="book-3d-pages-edge" aria-hidden />}
 
         {/* Front cover — rotates open on click */}
         {!showOpen ? (
