@@ -2,7 +2,7 @@ from pydantic import BaseModel, ConfigDict, Field
 
 
 class PdfExportRequest(BaseModel):
-    book_id: str = Field(serialization_alias="bookId")
+    book_id: str = Field(serialization_alias="bookId", validation_alias="bookId")
 
 
 class PdfJobResponse(BaseModel):

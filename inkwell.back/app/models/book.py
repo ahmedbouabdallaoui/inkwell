@@ -1,6 +1,6 @@
 import uuid
 from datetime import datetime, timezone
-from sqlalchemy import String, ForeignKey, DateTime
+from sqlalchemy import String, ForeignKey, DateTime, Boolean
 from sqlalchemy.types import JSON
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.core.database import Base
@@ -16,6 +16,7 @@ class Book(Base):
     characters: Mapped[str] = mapped_column(String, nullable=False)
     setting: Mapped[str] = mapped_column(String, nullable=False)
     cover_image_url: Mapped[str | None] = mapped_column(String, nullable=True)
+    is_favourite: Mapped[bool] = mapped_column(Boolean, default=False)
     pages: Mapped[list] = mapped_column(JSON, default=list)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
