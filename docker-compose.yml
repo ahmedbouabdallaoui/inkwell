@@ -1,0 +1,25 @@
+services:
+  backend:
+    build:
+      context: inkwell.back
+      dockerfile: Dockerfile
+    ports:
+      - "8000:80"
+    environment:
+      DATABASE_URL: sqlite+aiosqlite:///./data/data.db
+    volumes:
+      - backend-data:/app/data
+
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    ports:
+      - "5173:5173"
+    environment:
+      VITE_API_URL: http://localhost:8000/api/v1
+    depends_on:
+      - backend
+
+volumes:
+  backend-data:
