@@ -1,5 +1,5 @@
 from datetime import datetime
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 
 from app.schemas.book import BookResponse
 
@@ -11,9 +11,9 @@ class GenerateRequest(BaseModel):
 
 
 class GenerationJobResponse(BaseModel):
-    jobId: str
+    job_id: str = Field(serialization_alias="jobId")
     status: str
     book: BookResponse | None = None
     error: str | None = None
 
-    model_config = ConfigDict(from_attributes=True)
+    model_config = ConfigDict(from_attributes=True, populate_by_name=True)

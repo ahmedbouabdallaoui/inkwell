@@ -1,5 +1,5 @@
 from datetime import datetime
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class BookResponse(BaseModel):
@@ -8,9 +8,9 @@ class BookResponse(BaseModel):
     genre: str
     characters: str
     setting: str
-    coverImageUrl: str | None = None
+    cover_image_url: str | None = Field(None, serialization_alias="coverImageUrl")
     pages: list[str]
-    createdAt: datetime
+    created_at: datetime = Field(serialization_alias="createdAt")
 
     model_config = ConfigDict(from_attributes=True, populate_by_name=True)
 

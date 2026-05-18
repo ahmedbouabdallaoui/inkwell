@@ -32,7 +32,7 @@ async def create_generation(
     import asyncio
     asyncio.create_task(run_generation(job_id))
 
-    return GenerationJobResponse(jobId=job_id, status="pending")
+    return GenerationJobResponse(job_id=job_id, status="pending")
 
 
 @router.get("/generate/{job_id}")
@@ -48,7 +48,7 @@ async def get_generation_job(
     if job is None:
         raise HTTPException(status_code=404, detail="Generation job not found")
 
-    resp = GenerationJobResponse(jobId=job.id, status=job.status, error=job.error)
+    resp = GenerationJobResponse(job_id=job.id, status=job.status, error=job.error)
     if job.result_book_id:
         book_result = await db.execute(
             select(Book).where(Book.id == job.result_book_id)

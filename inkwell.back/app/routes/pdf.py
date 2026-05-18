@@ -19,8 +19,8 @@ async def export_pdf(
     db: AsyncSession = Depends(get_db),
 ) -> PdfJobResponse:
     try:
-        job_id = await enqueue_pdf_export(db, body.bookId, user.id)
-        return PdfJobResponse(jobId=job_id, status="pending")
+        job_id = await enqueue_pdf_export(db, body.book_id, user.id)
+        return PdfJobResponse(job_id=job_id, status="pending")
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e))
 
@@ -37,4 +37,4 @@ async def get_pdf_job(
     job = result.scalar_one_or_none()
     if job is None:
         raise HTTPException(status_code=404, detail="PDF job not found")
-    return PdfJobResponse(jobId=job.id, status=job.status, downloadUrl=job.download_url, error=job.error)
+    return PdfJobResponse(job_id=job.id, status=job.status, download_url=job.download_url, error=job.error)

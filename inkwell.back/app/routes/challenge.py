@@ -21,5 +21,5 @@ async def get_challenge(
         id=challenge.id if challenge else "",
         prompt=challenge.prompt if challenge else "No challenge today",
         date=challenge.date if challenge else None,
-        streakCount=streak,
+        streak_count=streak,
     )

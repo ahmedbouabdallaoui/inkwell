@@ -1,14 +1,14 @@
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class PdfExportRequest(BaseModel):
-    bookId: str
+    book_id: str = Field(serialization_alias="bookId")
 
 
 class PdfJobResponse(BaseModel):
-    jobId: str
+    job_id: str = Field(serialization_alias="jobId")
     status: str
-    downloadUrl: str | None = None
+    download_url: str | None = Field(None, serialization_alias="downloadUrl")
     error: str | None = None
 
-    model_config = ConfigDict(from_attributes=True)
+    model_config = ConfigDict(from_attributes=True, populate_by_name=True)
