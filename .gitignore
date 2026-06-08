@@ -24,6 +24,8 @@ dist-ssr
 *.sln
 *.sw?
 .worktrees/
+docs/
+CLAUDE.md
 .terraform/
 .terraform.lock.hcl
 inkwell.back/lambda/pdf_export/*
