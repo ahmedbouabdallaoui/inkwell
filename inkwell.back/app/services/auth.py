@@ -45,8 +45,20 @@ async def verify_cognito_token(token: str) -> dict:
         raise ValueError("Invalid token: signature mismatch")
 
     claims = jwt.get_unverified_claims(token)
+
     if claims.get("token_use") != "id":
         raise ValueError("Invalid token: not an id token")
+
+    import time
+    exp = claims.get("exp")
+    if exp is None:
+        raise ValueError("Invalid token: missing expiration")
+    if time.time() > exp:
+        raise ValueError("Invalid token: expired")
+
+    aud = claims.get("aud")
+    if aud != settings.cognito_client_id:
+        raise ValueError("Invalid token: audience mismatch")
 
     return claims
 

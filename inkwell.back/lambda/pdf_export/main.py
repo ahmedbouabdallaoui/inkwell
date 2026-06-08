@@ -15,8 +15,10 @@ def handler(event, context):
         job_id = body["job_id"]
         try:
             _process_job(job_id)
-        except Exception:
-            _fail_job(job_id, traceback.format_exc())
+        except Exception as e:
+            stack = traceback.format_exc()
+            print(f"PDF job {job_id} failed: {stack}")
+            _fail_job(job_id, f"Processing failed: {e}")
 
 
 def _fail_job(job_id: str, error: str):

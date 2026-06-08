@@ -21,8 +21,8 @@ async def export_pdf(
     try:
         job_id = await enqueue_pdf_export(db, body.book_id, user.id)
         return PdfJobResponse(job_id=job_id, status="pending")
-    except ValueError as e:
-        raise HTTPException(status_code=404, detail=str(e))
+    except ValueError:
+        raise HTTPException(status_code=404, detail="Book not found")
 
 
 @router.get("/pdf/{job_id}")
