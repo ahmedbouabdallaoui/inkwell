@@ -6,16 +6,18 @@ interface Book3DProps {
   isOpen: boolean
   isOpening: boolean
   isClosing: boolean
+  isFlipping: boolean
   onOpen: () => void
   children: ReactNode
 }
 
-export function Book3D({ coverImageUrl, title, isOpen, isOpening, isClosing, onOpen, children }: Book3DProps) {
+export function Book3D({ coverImageUrl, title, isOpen, isOpening, isClosing, isFlipping, onOpen, children }: Book3DProps) {
   const showOpen = isOpen && !isClosing
-  const showCrease = isOpening || isClosing
+  // Crease visible whenever the book is open (including during close animation)
+  const showCrease = isOpen || isOpening
 
-  // During opening, switch body to --open immediately so width/transform transitions run
-  const bodyIsOpen = isOpen || isOpening
+  // Body shrinks simultaneously with the closing cover sweep
+  const bodyIsOpen = (isOpen && !isClosing) || isOpening
   const bodyClass = [
     'book-3d-body',
     bodyIsOpen ? 'book-3d-body--open' : 'book-3d-body--closed',
@@ -36,10 +38,10 @@ export function Book3D({ coverImageUrl, title, isOpen, isOpening, isClosing, onO
         <div className="book-3d-interior">
           {showOpen && children}
           <div
-            className={`book-3d-crease ${showCrease ? 'book-3d-crease--visible' : ''}`}
+            className={`book-3d-crease ${showCrease && !isFlipping ? 'book-3d-crease--visible' : ''}${isClosing ? ' book-3d-crease--closing' : ''}`}
             aria-hidden
           />
-          {!showOpen && !isOpening && (
+          {!showOpen && !isOpening && !isClosing && (
             <div className="book-3d-closed-right">
               <span style={{ color: '#8B6FE8', fontSize: 18, opacity: 0.45 }}>◆</span>
               <span style={{ fontFamily: 'Lora, serif', fontSize: 12, color: 'rgba(44,36,22,0.38)', fontStyle: 'italic' }}>
@@ -53,7 +55,7 @@ export function Book3D({ coverImageUrl, title, isOpen, isOpening, isClosing, onO
         <div className="book-3d-spine" aria-hidden />
 
         {/* Page-edge stack — right side, visible only when fully closed */}
-        {!showOpen && !isOpening && <div className="book-3d-pages-edge" aria-hidden />}
+        {!showOpen && !isOpening && !isClosing && <div className="book-3d-pages-edge" aria-hidden />}
 
         {/* Front cover — rotates open on click */}
         {!showOpen ? (
@@ -67,7 +69,7 @@ export function Book3D({ coverImageUrl, title, isOpen, isOpening, isClosing, onO
               alt={`${title} cover`}
               style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
             />
-            {!isOpening && (
+            {!isOpening && !isClosing && (
               <div className="book-3d-cover-hint">
                 <span>Click to open</span>
               </div>

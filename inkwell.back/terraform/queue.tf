@@ -4,6 +4,7 @@ resource "aws_sqs_queue" "pdf_jobs" {
   max_message_size          = 262144
   message_retention_seconds = 86400
   receive_wait_time_seconds = 10
+  visibility_timeout_seconds = 180
   redrive_policy = jsonencode({
     deadLetterTargetArn = aws_sqs_queue.pdf_jobs_dlq.arn
     maxReceiveCount     = 3

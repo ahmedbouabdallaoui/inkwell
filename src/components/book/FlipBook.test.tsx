@@ -1,11 +1,10 @@
 import { render, screen } from '@testing-library/react'
-import userEvent from '@testing-library/user-event'
 import { FlipBook } from './FlipBook'
 import type { Book } from '../../types'
 
 // react-pageflip uses HTML5 Canvas which jsdom doesn't support — mock it
 vi.mock('react-pageflip', () => ({
-  default: vi.fn(({ children, onFlip, ref: _ref }: any) => (
+  default: vi.fn(({ children }: any) => (
     <div data-testid="html-flip-book">{children}</div>
   )),
 }))

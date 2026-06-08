@@ -1,6 +1,7 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef, useMemo } from 'react'
 import { Book3D } from './Book3D'
 import { FlipBook } from './FlipBook'
+import { paginatePages } from '../../utils/pagination'
 import type { Book } from '../../types'
 
 const MAX_REGEN = 3
@@ -20,30 +21,108 @@ export function OpenBook({ book, editSignal, onPdfExport, onShare, onSave, onReg
   const [isClosing,     setIsClosing]     = useState(false)
   const [editMode,      setEditMode]      = useState(false)
   const [currentPage,   setCurrentPage]   = useState(0)  // FlipBook page index
+  const [isFlipping,    setIsFlipping]    = useState(false)
   const [editedTitle,   setEditedTitle]   = useState('')
   const [editedPages,   setEditedPages]   = useState<string[]>([])
   const [coverPrompt,   setCoverPrompt]   = useState('')
   const [regenCount,    setRegenCount]    = useState(0)
+  const [displayBook,   setDisplayBook]   = useState(book)
+  const lastHandledSignal = useRef(0)
+  const postCloseActionRef = useRef<(() => void) | null>(null)
+  const closeTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
-  // Reset when a different book is selected
+  // The book we visually show (persists during close animation even after prop changes)
+  const activeBook = displayBook ?? book
+
+  function completeClose() {
+    closeTimeoutRef.current = null
+    setIsOpen(false)
+    setIsClosing(false)
+    setEditMode(false)
+    setCurrentPage(0)
+    setIsFlipping(false)
+    postCloseActionRef.current?.()
+    postCloseActionRef.current = null
+  }
+
+  // Handle book switching — plays the close animation when switching while open
   useEffect(() => {
+  if (!book) {
+      if (closeTimeoutRef.current) clearTimeout(closeTimeoutRef.current)
+      setDisplayBook(null)
+      setIsOpen(false)
+      setIsOpening(false)
+      setIsClosing(false)
+      setEditMode(false)
+      setCurrentPage(0)
+      setIsFlipping(false)
+      lastHandledSignal.current = editSignal
+      return
+    }
+
+    if (!displayBook) {
+      setDisplayBook(book)
+      return
+    }
+
+    if (displayBook.id === book.id) return
+
+    // Book switched while open — play close animation on current book,
+    // then show the new book after animation completes
+    if (isOpen || isOpening) {
+      setIsClosing(true)
+      const nextBook = book
+      postCloseActionRef.current = () => { setDisplayBook(nextBook) }
+      if (closeTimeoutRef.current) clearTimeout(closeTimeoutRef.current)
+      closeTimeoutRef.current = setTimeout(completeClose, 900)
+      return
+    }
+
+    // Book switched while closed — update immediately
+    if (closeTimeoutRef.current) clearTimeout(closeTimeoutRef.current)
+    setDisplayBook(book)
     setIsOpen(false)
     setIsOpening(false)
     setIsClosing(false)
     setEditMode(false)
     setCurrentPage(0)
+    setIsFlipping(false)
+    lastHandledSignal.current = editSignal
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [book?.id])
 
-  // Open in edit mode when the shelf ✎ icon is clicked
+  // Open in edit mode when the shelf ✎ icon is clicked — only fires on new signals
   useEffect(() => {
-    if (editSignal > 0 && book) {
-      setEditedTitle(book.title)
-      setEditedPages([...book.pages])
-      setCoverPrompt('')
-      setRegenCount(0)
-      openBook(true)
+    if (editSignal <= lastHandledSignal.current || !book) return
+    lastHandledSignal.current = editSignal
+
+    // If the book also changed, the book?.id effect will handle the transition;
+    // just augment the post-close action to enter edit mode
+    if (displayBook && displayBook.id !== book.id) {
+      const existingAction = postCloseActionRef.current
+      postCloseActionRef.current = () => {
+        existingAction?.()
+        setEditedTitle(book.title)
+        setEditedPages([...book.pages])
+        setCoverPrompt('')
+        setRegenCount(0)
+        openBook(true)
+      }
+      return
     }
-  }, [editSignal, book])
+
+    setEditedTitle(book.title)
+    setEditedPages([...book.pages])
+    setCoverPrompt('')
+    setRegenCount(0)
+    openBook(true)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [editSignal])
+
+  // Cleanup close timeout on unmount
+  useEffect(() => {
+    return () => { if (closeTimeoutRef.current) clearTimeout(closeTimeoutRef.current) }
+  }, [])
 
   function openBook(inEditMode = false) {
     if (inEditMode) {
@@ -62,12 +141,8 @@ export function OpenBook({ book, editSignal, onPdfExport, onShare, onSave, onReg
 
   function closeBook() {
     setIsClosing(true)
-    setTimeout(() => {
-      setIsOpen(false)
-      setIsClosing(false)
-      setEditMode(false)
-      setCurrentPage(0)
-    }, 900)
+    if (closeTimeoutRef.current) clearTimeout(closeTimeoutRef.current)
+    closeTimeoutRef.current = setTimeout(completeClose, 900)
   }
 
   function enterEditMode() {
@@ -76,6 +151,7 @@ export function OpenBook({ book, editSignal, onPdfExport, onShare, onSave, onReg
     setEditedPages([...book.pages])
     setCoverPrompt('')
     setRegenCount(0)
+    setCurrentPage(0)
     setEditMode(true)
   }
 
@@ -91,10 +167,16 @@ export function OpenBook({ book, editSignal, onPdfExport, onShare, onSave, onReg
     setRegenCount((n) => n + 1)
   }
 
+  // Split long pages into page-sized chunks for the flip-book
+  const displayPages = useMemo(
+    () => (activeBook ? paginatePages(activeBook.pages) : []),
+    [activeBook?.pages],
+  )
+
   // Toolbar page counter — FlipBook page 0 is title, 1…N are story pages
   const storyPageShown = Math.max(currentPage, 1)
-  const totalStoryPages = book?.pages.length ?? 0
-  const counterText = book
+  const totalStoryPages = displayPages.length
+  const counterText = activeBook
     ? currentPage === 0
       ? `Title · ${totalStoryPages} pages`
       : `${storyPageShown}–${Math.min(storyPageShown + 1, totalStoryPages)} / ${totalStoryPages}`
@@ -114,11 +196,12 @@ export function OpenBook({ book, editSignal, onPdfExport, onShare, onSave, onReg
   return (
     <div className="flex flex-col items-center gap-6">
       <Book3D
-        coverImageUrl={book.coverImageUrl}
-        title={book.title}
+        coverImageUrl={activeBook!.coverImageUrl}
+        title={activeBook!.title}
         isOpen={isOpen}
         isOpening={isOpening}
         isClosing={isClosing}
+        isFlipping={isFlipping}
         onOpen={() => openBook()}
       >
         {editMode ? (
@@ -162,8 +245,10 @@ export function OpenBook({ book, editSignal, onPdfExport, onShare, onSave, onReg
           /* ── Reading mode: FlipBook ── */
           <FlipBook
             book={book}
+            pages={displayPages}
             onPageChange={setCurrentPage}
             onRequestClose={closeBook}
+            onFlipStateChange={setIsFlipping}
           />
         )}
       </Book3D>
@@ -196,7 +281,7 @@ export function OpenBook({ book, editSignal, onPdfExport, onShare, onSave, onReg
             )}
             {(!isOpen && !isOpening) && (
               <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, color: '#8888A0' }}>
-                {book.genre} · {book.pages.length} pages
+                {activeBook!.genre} · {activeBook!.pages.length} pages
               </span>
             )}
           </>

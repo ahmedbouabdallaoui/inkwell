@@ -27,7 +27,7 @@ resource "aws_iam_policy" "pdf_lambda_extra" {
     Statement = [
       {
         Effect = "Allow"
-        Action = ["s3:PutObject"]
+        Action = ["s3:PutObject", "s3:GetObject"]
         Resource = ["${aws_s3_bucket.pdfs.arn}/*"]
       },
       {
@@ -69,7 +69,6 @@ resource "aws_lambda_function" "pdf_export" {
       S3_PDFS_BUCKET        = aws_s3_bucket.pdfs.id
       SQS_PDF_QUEUE_URL     = aws_sqs_queue.pdf_jobs.id
       PRESIGNED_URL_EXPIRY_SECONDS = "3600"
-      AWS_DEFAULT_REGION    = "us-east-1"
     }
   }
   tags = { Name = "${local.name_prefix}-pdf-export" }

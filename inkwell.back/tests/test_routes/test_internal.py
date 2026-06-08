@@ -4,7 +4,7 @@ import pytest
 
 
 @pytest.mark.asyncio
-@patch("app.routes.internal.boto3.client")
+@patch("app.services.challenge.boto3.client")
 async def test_seed_challenge(mock_boto3_client, client, db_session):
     mock_bedrock = MagicMock()
     mock_body = MagicMock()
@@ -16,7 +16,4 @@ async def test_seed_challenge(mock_boto3_client, client, db_session):
 
     response = await client.post("/api/v1/internal/challenge-seed")
     assert response.status_code == 200
-    data = response.json()
-    assert data["prompt"] == "Write about a dragon"
-    assert "id" in data
-    assert "date" in data
+    assert response.json() == {"status": "ok"}

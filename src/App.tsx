@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { AnimatePresence } from 'framer-motion'
 import { CognitoProvider } from './auth/CognitoProvider'
+import { useAuth } from './auth/useAuth'
 import { AppShell } from './components/layout/AppShell'
 import { LeftPanel } from './components/layout/LeftPanel'
 import { OpenBook } from './components/book/OpenBook'
@@ -16,11 +17,36 @@ import type { Book, GenerationInput } from './types'
 const queryClient = new QueryClient()
 
 function InkwellApp() {
+  const { user, loading, login } = useAuth()
+
+  if (loading) {
+    return (
+      <div className="flex h-screen w-screen items-center justify-center bg-ink-bg">
+        <p className="font-mono text-sm text-ink-muted animate-pulse">Loading…</p>
+      </div>
+    )
+  }
+
+  if (!user) {
+    return (
+      <div className="flex h-screen w-screen flex-col items-center justify-center gap-6 bg-ink-bg">
+        <h1 className="font-display text-4xl tracking-tight text-ink-violet">Inkwell</h1>
+        <p className="font-mono text-sm text-ink-muted -mt-4">AI story prompt generator</p>
+        <button
+          onClick={login}
+          className="rounded-md bg-ink-violet px-6 py-2 font-mono text-sm text-white transition hover:bg-ink-violet-light"
+        >
+          Sign in with Cognito
+        </button>
+      </div>
+    )
+  }
   const [selectedBookId, setSelectedBookId] = useState<string | null>(null)
   const [overlayOpen, setOverlayOpen] = useState(false)
   const [challengeAccepted, setChallengeAccepted] = useState(false)
   const [overlayInitialValues, setOverlayInitialValues] = useState<Partial<GenerationInput> | undefined>()
   const [editSignal, setEditSignal] = useState(0)
+  const [generationError, setGenerationError] = useState<string | null>(null)
 
   const { data: booksData } = useBooks()
   const { data: challenge } = useChallenge()
@@ -42,11 +68,25 @@ function InkwellApp() {
     document.title = selectedBook ? `Inkwell — ${selectedBook.title}` : 'Inkwell'
   }, [selectedBook])
 
-  function handleGenerate(input: GenerationInput) { generation.mutate(input) }
+  function handleGenerate(input: GenerationInput) {
+    setGenerationError(null)
+    generation.mutate(input, {
+      onError: (err) => setGenerationError(err instanceof Error ? err.message : 'Generation failed'),
+    })
+  }
 
   function handlePdfExport() {
     if (!selectedBook) return
-    pdfExport.mutateAsync(selectedBook.id).then((url) => window.open(url, '_blank'))
+    const win = window.open('', '_blank')
+    pdfExport.mutateAsync(selectedBook.id).then((url) => {
+      if (win && !win.closed) {
+        win.location.href = url
+      } else {
+        window.location.href = url
+      }
+    }).catch(() => {
+      if (win && !win.closed) win.close()
+    })
   }
 
   function handleShare() {
@@ -118,10 +158,11 @@ function InkwellApp() {
         {overlayOpen && (
           <GenerationOverlay
             open={overlayOpen}
-            onClose={() => setOverlayOpen(false)}
+            onClose={() => { setOverlayOpen(false); setGenerationError(null) }}
             onSubmit={handleGenerate}
             loading={generation.isPending}
             initialValues={overlayInitialValues}
+            error={generationError}
           />
         )}
       </AnimatePresence>

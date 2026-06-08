@@ -6,6 +6,7 @@ from app.core.database import get_db
 from app.core.security import get_current_user
 from app.models.user import User
 from app.models.generation_job import GenerationJob
+from app.models.book import Book
 from app.schemas.generation import GenerateRequest, GenerationJobResponse
 from app.tasks.generate import run_generation
 from app.schemas.book import BookResponse
@@ -30,6 +31,7 @@ async def create_generation(
     job_id = job.id
 
     import asyncio
+    await db.commit()
     asyncio.create_task(run_generation(job_id))
 
     return GenerationJobResponse(job_id=job_id, status="pending")

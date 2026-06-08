@@ -8,6 +8,7 @@ const defaultProps = {
   isOpen: false,
   isOpening: false,
   isClosing: false,
+  isFlipping: false,
   onOpen: vi.fn(),
 }
 
@@ -42,9 +43,8 @@ test('does not render children when isOpen is false', () => {
 })
 
 test('does not call onOpen when already open', async () => {
-  const user = userEvent.setup()
   const onOpen = vi.fn()
-  render(<Book3D {...defaultProps} isOpen onOpen={onOpen}><div>pages</div></Book3D>)
+  render(<Book3D {...defaultProps} isOpen isFlipping={false} onOpen={onOpen}><div>pages</div></Book3D>)
   // cover should not be clickable when open
   expect(screen.queryByRole('button', { name: /Open book/i })).not.toBeInTheDocument()
 })

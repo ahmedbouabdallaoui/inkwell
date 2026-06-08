@@ -9,9 +9,10 @@ interface GenerationOverlayProps {
   onSubmit: (input: GenerationInput) => void
   loading: boolean
   initialValues?: Partial<GenerationInput>
+  error?: string | null
 }
 
-export function GenerationOverlay({ open, onClose, onSubmit, loading, initialValues }: GenerationOverlayProps) {
+export function GenerationOverlay({ open, onClose, onSubmit, loading, initialValues, error }: GenerationOverlayProps) {
   return (
     <AnimatePresence>
       {open && (
@@ -39,6 +40,9 @@ export function GenerationOverlay({ open, onClose, onSubmit, loading, initialVal
                 What will you write today?
               </p>
             </div>
+            {error && (
+              <p className="text-sm font-sans text-red-400 text-center bg-red-900/20 rounded-md px-3 py-2">{error}</p>
+            )}
             <GenerationForm onSubmit={onSubmit} loading={loading} initialValues={initialValues} />
           </motion.div>
         </motion.div>

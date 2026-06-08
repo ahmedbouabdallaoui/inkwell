@@ -6,11 +6,13 @@ import React from 'react'
 
 interface FlipBookProps {
   book: Book
+  pages?: string[]
   onPageChange: (flipPageIndex: number) => void
   onRequestClose?: () => void
+  onFlipStateChange?: (isFlipping: boolean) => void
 }
 
-export function FlipBook({ book, onPageChange, onRequestClose }: FlipBookProps) {
+export function FlipBook({ book, pages, onPageChange, onRequestClose, onFlipStateChange }: FlipBookProps) {
   const bookRef = useRef<any>(null)
 
   useEffect(() => {
@@ -38,14 +40,16 @@ export function FlipBook({ book, onPageChange, onRequestClose }: FlipBookProps) 
     bookRef.current?.pageFlip()?.flipPrev()
   }
 
+  const storyPages = pages ?? book.pages
+
   // Pre-build the pages array — no conditional JSX children.
   // react-pageflip calls React.cloneElement on every child; if a child
   // evaluates to false/null (from a short-circuit expression), it throws.
-  const pages: React.ReactElement[] = [
+  const flipPages: React.ReactElement[] = [
     <div key="title" className="flip-page" onClick={handlePrevOrClose}>
       <BookPage side="left" title={book.title} genre={book.genre} createdAt={book.createdAt} content="" />
     </div>,
-    ...book.pages.map((content, i) => {
+    ...storyPages.map((content, i) => {
       const flipIdx = i + 1
       return (
         <div
@@ -63,8 +67,8 @@ export function FlipBook({ book, onPageChange, onRequestClose }: FlipBookProps) 
   ]
 
   // Ensure even total page count so the last story page is never alone on the right
-  if (book.pages.length % 2 === 0) {
-    pages.push(
+  if (storyPages.length % 2 === 0) {
+    flipPages.push(
       <div key="blank" className="flip-page" onClick={handlePrevOrClose}>
         <div style={{ width: '100%', height: '100%', background: '#F5EDD9' }} />
       </div>
@@ -75,6 +79,10 @@ export function FlipBook({ book, onPageChange, onRequestClose }: FlipBookProps) 
     <HTMLFlipBook
       width={360}
       height={500}
+      minWidth={200}
+      maxWidth={600}
+      minHeight={300}
+      maxHeight={800}
       size="fixed"
       drawShadow
       flippingTime={700}
@@ -83,6 +91,7 @@ export function FlipBook({ book, onPageChange, onRequestClose }: FlipBookProps) 
       startPage={0}
       ref={bookRef}
       onFlip={(e: any) => onPageChange(e.data)}
+      onChangeState={(e: any) => onFlipStateChange?.(e.data === 'flipping')}
       style={{}}
       className=""
       startZIndex={0}
@@ -95,7 +104,7 @@ export function FlipBook({ book, onPageChange, onRequestClose }: FlipBookProps) 
       showPageCorners
       disableFlipByClick
     >
-      {pages}
+      {flipPages}
     </HTMLFlipBook>
   )
 }

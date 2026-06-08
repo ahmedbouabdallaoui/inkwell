@@ -24,3 +24,8 @@ dist-ssr
 *.sln
 *.sw?
 .worktrees/
+.terraform/
+.terraform.lock.hcl
+inkwell.back/lambda/pdf_export/*
+!inkwell.back/lambda/pdf_export/main.py
+!inkwell.back/lambda/pdf_export/requirements.txt

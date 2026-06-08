@@ -1,3 +1,5 @@
+data "aws_caller_identity" "current" {}
+
 data "aws_ami" "amazon_linux" {
   most_recent = true
   owners      = ["amazon"]
@@ -29,20 +31,78 @@ resource "aws_iam_role_policy_attachment" "ec2_bedrock" {
   policy_arn = aws_iam_policy.bedrock.arn
 }
 
+resource "aws_iam_policy" "ecr_pull" {
+  name = "${local.name_prefix}-ecr-pull"
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Effect = "Allow"
+      Action = [
+        "ecr:GetDownloadUrlForLayer",
+        "ecr:BatchGetImage",
+        "ecr:BatchCheckLayerAvailability",
+        "ecr:GetAuthorizationToken",
+      ]
+      Resource = ["*"]
+    }]
+  })
+}
+
+resource "aws_iam_role_policy_attachment" "ec2_ecr" {
+  role       = aws_iam_role.ec2.name
+  policy_arn = aws_iam_policy.ecr_pull.arn
+}
+
+resource "aws_iam_policy" "ec2_sqs_s3" {
+  name = "${local.name_prefix}-ec2-sqs-s3"
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = ["sqs:SendMessage"]
+        Resource = [aws_sqs_queue.pdf_jobs.arn]
+      },
+      {
+        Effect = "Allow"
+        Action = ["s3:PutObject", "s3:PutObjectAcl", "s3:GetObject"]
+        Resource = [
+          "${aws_s3_bucket.covers.arn}/*",
+          "${aws_s3_bucket.pdfs.arn}/*",
+        ]
+      },
+    ]
+  })
+}
+
+resource "aws_iam_role_policy_attachment" "ec2_sqs_s3" {
+  role       = aws_iam_role.ec2.name
+  policy_arn = aws_iam_policy.ec2_sqs_s3.arn
+}
+
 resource "aws_instance" "app" {
   ami                  = data.aws_ami.amazon_linux.id
   instance_type        = "t3.micro"
   subnet_id            = aws_subnet.public[0].id
   iam_instance_profile = aws_iam_instance_profile.ec2.name
+  key_name             = aws_key_pair.app.key_name
   vpc_security_group_ids = [aws_security_group.ec2.id]
+  credit_specification {
+    cpu_credits = "unlimited"
+  }
   user_data = templatefile("${path.module}/userdata.sh", {
-    database_url     = "postgresql://inkwell:${random_password.db.result}@${aws_db_instance.main.address}:5432/inkwell"
+    account_id       = data.aws_caller_identity.current.account_id
+    database_url     = "postgresql+asyncpg://inkwell:${random_password.db.result}@${aws_db_instance.main.address}:5432/inkwell"
     cognito_pool_id  = aws_cognito_user_pool.main.id
     cognito_client_id = aws_cognito_user_pool_client.main.id
     s3_covers_bucket = aws_s3_bucket.covers.id
     s3_pdfs_bucket   = aws_s3_bucket.pdfs.id
     sqs_queue_url    = aws_sqs_queue.pdf_jobs.id
   })
+  root_block_device {
+    volume_size = 30
+    volume_type = "gp3"
+  }
   tags = { Name = "${local.name_prefix}-app" }
 }
 
@@ -50,9 +110,14 @@ resource "aws_lb" "main" {
   name               = "${local.name_prefix}-alb"
   internal           = false
   load_balancer_type = "application"
-  security_groups    = [aws_security_group.ec2.id]
+  security_groups    = [aws_security_group.alb.id]
   subnets            = aws_subnet.public[*].id
   tags               = { Name = "${local.name_prefix}-alb" }
+}
+
+resource "aws_key_pair" "app" {
+  key_name   = "${local.name_prefix}-key"
+  public_key = file("/home/ahmed/.ssh/id_rsa.pub")
 }
 
 resource "aws_lb_target_group" "app" {

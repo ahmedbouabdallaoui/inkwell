@@ -565,19 +565,32 @@
   width: 18px;
   transform: translateX(-50%);
   background: linear-gradient(to right,
-    rgba(0,0,0,0.22) 0%,
-    rgba(0,0,0,0.08) 35%,
-    transparent 50%,
-    rgba(0,0,0,0.08) 65%,
-    rgba(0,0,0,0.22) 100%
+    transparent 0%,
+    rgba(0,0,0,0.03) 12%,
+    rgba(0,0,0,0.12) 28%,
+    rgba(0,0,0,0.28) 44%,
+    rgba(0,0,0,0.35) 50%,
+    rgba(0,0,0,0.28) 56%,
+    rgba(0,0,0,0.12) 72%,
+    rgba(0,0,0,0.03) 88%,
+    transparent 100%
   );
   pointer-events: none;
-  z-index: 10;
+  z-index: 1;
   opacity: 0;
   transition: opacity 220ms ease-out;
 }
 .book-3d-crease--visible {
   opacity: 1;
+}
+.book-3d-crease--closing {
+  left: 0%;
+  transform: translateX(0);
+  width: 3px;
+  opacity: 0;
+  transition: left 900ms cubic-bezier(0.4, 0, 0.2, 1),
+              width 900ms cubic-bezier(0.4, 0, 0.2, 1),
+              opacity 250ms ease-out 650ms;
 }
 
 /* Left spine — visible in 3D when book is tilted */
@@ -618,6 +631,9 @@
   z-index: 3;
   cursor: pointer;
   box-shadow: 2px 0 16px rgba(0,0,0,0.35);
+  background: #1a1820;
+  border: none;
+  padding: 0;
 }
 .book-3d-cover--closed  { transform: rotateY(0deg); }
 .book-3d-cover--open    { transform: rotateY(-180deg); cursor: default; }
@@ -669,4 +685,26 @@
   overflow: hidden;
   user-select: none;
 }
+
+/* Ensure the library's internal page elements are never transparent during flip */
+.stf__item {
+  background: #F5EDD9;
+}
+.stf__item > * {
+  background: #F5EDD9;
+}
 .shelf-scroll::-webkit-scrollbar { display: none; }
+
+/* Prevent white autofill background on dark form inputs */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active,
+textarea:-webkit-autofill,
+textarea:-webkit-autofill:hover,
+textarea:-webkit-autofill:focus,
+textarea:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 1000px var(--color-ink-bg) inset !important;
+  -webkit-text-fill-color: var(--color-ink-text) !important;
+  transition: background-color 5000s ease-in-out 0s;
+}

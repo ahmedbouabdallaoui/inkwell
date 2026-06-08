@@ -39,7 +39,7 @@ async def verify_cognito_token(token: str) -> dict:
 
     public_key = jwk.construct(key)
     message, encoded_sig = token.rsplit(".", 1)
-    decoded_sig = base64url_decode(encoded_sig)
+    decoded_sig = base64url_decode(encoded_sig.encode("ascii"))
 
     if not public_key.verify(message.encode(), decoded_sig):
         raise ValueError("Invalid token: signature mismatch")

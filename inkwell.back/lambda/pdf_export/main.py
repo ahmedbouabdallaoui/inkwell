@@ -1,8 +1,8 @@
 import json
 import os
+import traceback
 import boto3
 import psycopg2
-from urllib.parse import urlparse
 
 DATABASE_URL = os.environ["DATABASE_URL"]
 S3_PDFS_BUCKET = os.environ["S3_PDFS_BUCKET"]
@@ -13,12 +13,36 @@ def handler(event, context):
     for record in event["Records"]:
         body = json.loads(record["body"])
         job_id = body["job_id"]
-        _process_job(job_id)
+        try:
+            _process_job(job_id)
+        except Exception:
+            _fail_job(job_id, traceback.format_exc())
+
+
+def _fail_job(job_id: str, error: str):
+    try:
+        conn = psycopg2.connect(DATABASE_URL)
+        cur = conn.cursor()
+        cur.execute(
+            "UPDATE pdf_jobs SET status = 'failed', error = %s, updated_at = NOW() WHERE id = %s",
+            (error, job_id),
+        )
+        conn.commit()
+        cur.close()
+        conn.close()
+    except Exception:
+        print(f"Failed to update job {job_id}: {error}")
 
 
 def _process_job(job_id: str):
     conn = psycopg2.connect(DATABASE_URL)
     cur = conn.cursor()
+
+    cur.execute(
+        "UPDATE pdf_jobs SET status = 'processing', updated_at = NOW() WHERE id = %s",
+        (job_id,),
+    )
+    conn.commit()
 
     cur.execute(
         """SELECT b.id, b.title, b.pages::text
@@ -33,8 +57,7 @@ def _process_job(job_id: str):
         return
 
     book_id, title, pages_json = row
-    import json as j
-    pages = j.loads(pages_json)
+    pages = json.loads(pages_json)
 
     pdf_content = _generate_pdf(title, pages)
 

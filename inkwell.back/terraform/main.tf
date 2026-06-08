@@ -6,7 +6,7 @@ terraform {
     }
   }
   backend "s3" {
-    bucket = "inkwell-terraform-state"
+    bucket = "inkwell-terraform-state-abemm"
     key    = "prod/terraform.tfstate"
     region = "us-east-1"
   }

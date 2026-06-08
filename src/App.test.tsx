@@ -2,8 +2,8 @@
 import { render, screen } from '@testing-library/react'
 import App from './App'
 
-vi.mock('./auth/CognitoProvider', () => ({
-  CognitoProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+vi.mock('./auth/useAuth', () => ({
+  useAuth: () => ({ user: { id: 'test', email: 'a@b.com', name: 'Test' }, loading: false, login: vi.fn(), logout: vi.fn() }),
 }))
 vi.mock('./hooks/useBooks',     () => ({ useBooks:           () => ({ data: [] }),            useInvalidateBooks: () => vi.fn() }))
 vi.mock('./hooks/useChallenge', () => ({ useChallenge:       () => ({ data: undefined }) }))

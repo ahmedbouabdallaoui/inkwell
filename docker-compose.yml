@@ -7,7 +7,11 @@ services:
       - "8000:80"
     environment:
       DATABASE_URL: sqlite+aiosqlite:///./data/data.db
+      COGNITO_USER_POOL_ID: us-east-1_BZfwBvG99
+      COGNITO_CLIENT_ID: 5augkbidsu5ohemg0lq9r3hla6
+      COGNITO_REGION: us-east-1
     volumes:
+      - ~/.aws:/root/.aws:ro
       - backend-data:/app/data
 
   frontend:
